@@ -1,4 +1,4 @@
-module goeduidiam
+module github.com/masv3971/goeduidiam
 
 go 1.17
 
