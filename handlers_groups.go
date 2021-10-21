@@ -11,16 +11,8 @@ type GroupsService struct {
 	client *Client
 }
 
-// GroupsGetAllReply response from /groups/get
-type GroupsGetAllReply struct {
-	Schemas   []string `json:"schemas"`
-	Resources []struct {
-	} `json:"Resources"`
-	TotalResults int `json:"totalResults"`
-}
-
 // GetAll return all groups
-func (s *GroupsService) GetAll(ctx context.Context) (*GroupsGetAllReply, *http.Response, error) {
+func (s *GroupsService) GetAll(ctx context.Context) (*GroupsReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"GET",
@@ -31,7 +23,7 @@ func (s *GroupsService) GetAll(ctx context.Context) (*GroupsGetAllReply, *http.R
 		return nil, nil, err
 	}
 
-	reply := &GroupsGetAllReply{}
+	reply := &GroupsReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -45,14 +37,8 @@ type GroupsGetRequest struct {
 	ScimID string
 }
 
-// GroupsGetReply type
-type GroupsGetReply struct {
-	Ok  GroupsReply
-	Err ErrorReply
-}
-
 // Get gets one group
-func (s *GroupsService) Get(ctx context.Context, request GroupsGetRequest) (*GroupsGetReply, *http.Response, error) {
+func (s *GroupsService) Get(ctx context.Context, request GroupsGetRequest) (*GroupsReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"GET",
@@ -63,7 +49,7 @@ func (s *GroupsService) Get(ctx context.Context, request GroupsGetRequest) (*Gro
 		return nil, nil, err
 	}
 
-	reply := &GroupsGetReply{}
+	reply := &GroupsReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -77,14 +63,8 @@ type GroupsPostRequest struct {
 	Data GroupsRequest
 }
 
-// GroupsPostReply type
-type GroupsPostReply struct {
-	Ok  GroupsReply
-	Err ErrorReply
-}
-
 // Post posts a group
-func (s *GroupsService) Post(ctx context.Context, request GroupsPostRequest) (*GroupsPostReply, *http.Response, error) {
+func (s *GroupsService) Post(ctx context.Context, request GroupsPostRequest) (*GroupsReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
@@ -95,7 +75,7 @@ func (s *GroupsService) Post(ctx context.Context, request GroupsPostRequest) (*G
 		return nil, nil, err
 	}
 
-	reply := &GroupsPostReply{}
+	reply := &GroupsReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -110,14 +90,8 @@ type GroupsPutRequest struct {
 	Data   GroupsRequest
 }
 
-// GroupsPutReply type
-type GroupsPutReply struct {
-	Ok  GroupsReply
-	Err ErrorReply
-}
-
 // Put puts group
-func (s *GroupsService) Put(ctx context.Context, request GroupsPutRequest, scimID string) (*GroupsPutReply, *http.Response, error) {
+func (s *GroupsService) Put(ctx context.Context, request GroupsPutRequest) (*GroupsReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"PUT",
@@ -128,7 +102,7 @@ func (s *GroupsService) Put(ctx context.Context, request GroupsPutRequest, scimI
 		return nil, nil, err
 	}
 
-	reply := &GroupsPutReply{}
+	reply := &GroupsReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -142,14 +116,8 @@ type GroupsDeleteRequest struct {
 	ScimID string
 }
 
-// GroupsDeleteReply type
-type GroupsDeleteReply struct {
-	Ok  struct{}
-	Err ErrorReply
-}
-
-// Delete delets a group
-func (s *GroupsService) Delete(ctx context.Context, request GroupsDeleteRequest) (*GroupsDeleteReply, *http.Response, error) {
+// Delete deletes a group
+func (s *GroupsService) Delete(ctx context.Context, request GroupsDeleteRequest) (*EmptyStruct, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"DELETE",
@@ -160,7 +128,7 @@ func (s *GroupsService) Delete(ctx context.Context, request GroupsDeleteRequest)
 		return nil, nil, err
 	}
 
-	reply := &GroupsDeleteReply{}
+	reply := &EmptyStruct{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -174,14 +142,8 @@ type GroupsSearchRequest struct {
 	Data SearchRequest
 }
 
-// GroupsSearchReply is the reply for Search
-type GroupsSearchReply struct {
-	Ok  SearchReply
-	Err ErrorReply
-}
-
 // Search group
-func (s *GroupsService) Search(ctx context.Context, request GroupsSearchRequest) (*GroupsSearchReply, *http.Response, error) {
+func (s *GroupsService) Search(ctx context.Context, request GroupsSearchRequest) (*SearchReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
@@ -192,7 +154,7 @@ func (s *GroupsService) Search(ctx context.Context, request GroupsSearchRequest)
 		return nil, nil, err
 	}
 
-	reply := &GroupsSearchReply{}
+	reply := &SearchReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err

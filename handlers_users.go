@@ -16,14 +16,8 @@ type UsersGetRequest struct {
 	ScimID string
 }
 
-// UsersGetReply type
-type UsersGetReply struct {
-	Ok  UsersReply
-	Err ErrorReply
-}
-
 // Get gets users from eduidIAM
-func (s *UsersService) Get(ctx context.Context, request UsersGetRequest) (*UsersGetReply, *http.Response, error) {
+func (s *UsersService) Get(ctx context.Context, request UsersGetRequest) (*UsersReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"GET",
@@ -34,7 +28,7 @@ func (s *UsersService) Get(ctx context.Context, request UsersGetRequest) (*Users
 		return nil, nil, err
 	}
 
-	reply := &UsersGetReply{}
+	reply := &UsersReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -46,17 +40,11 @@ func (s *UsersService) Get(ctx context.Context, request UsersGetRequest) (*Users
 // UsersPutRequest xx
 type UsersPutRequest struct {
 	ScimID string
-	Data   UsersRequest
-}
-
-// UsersPutReply type
-type UsersPutReply struct {
-	Ok  UsersReply
-	Err ErrorReply
+	Data   UsersRequest `json:"data"`
 }
 
 // Put puts on user
-func (s *UsersService) Put(ctx context.Context, request UsersPutRequest) (*UsersPutReply, *http.Response, error) {
+func (s *UsersService) Put(ctx context.Context, request UsersPutRequest) (*UsersReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"PUT",
@@ -67,7 +55,7 @@ func (s *UsersService) Put(ctx context.Context, request UsersPutRequest) (*Users
 		return nil, nil, err
 	}
 
-	reply := &UsersPutReply{}
+	reply := &UsersReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -78,29 +66,22 @@ func (s *UsersService) Put(ctx context.Context, request UsersPutRequest) (*Users
 
 // UsersPostRequest type
 type UsersPostRequest struct {
-	ScimID string
-	Data   UsersRequest
-}
-
-// UsersPostReply type
-type UsersPostReply struct {
-	Ok  UsersReply
-	Err ErrorReply
+	Data UsersRequest `json:"data"`
 }
 
 // Post posts user
-func (s *UsersService) Post(ctx context.Context, request UsersPostRequest) (*UsersPostReply, *http.Response, error) {
+func (s *UsersService) Post(ctx context.Context, request UsersPostRequest) (*UsersReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
-		fmt.Sprintf("/users/%s", request.ScimID),
+		fmt.Sprintf("/users/"),
 		request.Data,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	reply := &UsersPostReply{}
+	reply := &UsersReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -111,20 +92,14 @@ func (s *UsersService) Post(ctx context.Context, request UsersPostRequest) (*Use
 
 // UsersSearchRequest type
 type UsersSearchRequest struct {
-	Data SearchRequest
-}
-
-// UsersSearchReply type
-type UsersSearchReply struct {
-	Ok  UsersReply
-	Err ErrorReply
+	Data SearchRequest `json:"data"`
 }
 
 // Search searching for user
-func (s *UsersService) Search(ctx context.Context, request UsersSearchRequest) (*UsersSearchReply, *http.Response, error) {
+func (s *UsersService) Search(ctx context.Context, request UsersSearchRequest) (*UsersReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
-		"PUT",
+		"POST",
 		fmt.Sprintf("/users/"),
 		request.Data,
 	)
@@ -132,7 +107,7 @@ func (s *UsersService) Search(ctx context.Context, request UsersSearchRequest) (
 		return nil, nil, err
 	}
 
-	reply := &UsersSearchReply{}
+	reply := &UsersReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err

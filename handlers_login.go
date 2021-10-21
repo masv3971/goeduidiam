@@ -13,30 +13,22 @@ type LoginService struct {
 
 // LoginPostRequest type
 type LoginPostRequest struct {
-	Data struct {
-		DataOwner string `json:"data_owner"`
-	}
-}
-
-// LoginPostReply type
-type LoginPostReply struct {
-	Ok  struct{}
-	Err ErrorReply
+	Data LoginRequest `json:"data"`
 }
 
 // Post login a user
-func (s *LoginService) Post(ctx context.Context, request LoginPostRequest) (*LoginPostReply, *http.Response, error) {
+func (s *LoginService) Post(ctx context.Context, request LoginPostRequest) (*EmptyStruct, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
-		fmt.Sprintf("/users/"),
+		fmt.Sprintf("/login/"),
 		request.Data,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	reply := &LoginPostReply{}
+	reply := &EmptyStruct{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err

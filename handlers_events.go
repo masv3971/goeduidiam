@@ -16,14 +16,8 @@ type EventsGetRequest struct {
 	ScimID string
 }
 
-// EventsGetReply type
-type EventsGetReply struct {
-	Ok  EventsReply
-	Err ErrorReply
-}
-
 // Get gets one event
-func (s *EventsService) Get(ctx context.Context, request EventsGetRequest) (*EventsGetReply, *http.Response, error) {
+func (s *EventsService) Get(ctx context.Context, request EventsGetRequest) (*EventsReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"GET",
@@ -34,7 +28,7 @@ func (s *EventsService) Get(ctx context.Context, request EventsGetRequest) (*Eve
 		return nil, nil, err
 	}
 
-	reply := &EventsGetReply{}
+	reply := &EventsReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -48,14 +42,8 @@ type EventsPostRequest struct {
 	Data EventsRequest
 }
 
-// EventsPostReply type
-type EventsPostReply struct {
-	Ok  EventsReply
-	Err ErrorReply
-}
-
-// Post creats a new event
-func (s *EventsService) Post(ctx context.Context, request EventsPostRequest) (*EventsPostReply, *http.Response, error) {
+// Post create a new event
+func (s *EventsService) Post(ctx context.Context, request EventsPostRequest) (*EventsReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
@@ -66,7 +54,7 @@ func (s *EventsService) Post(ctx context.Context, request EventsPostRequest) (*E
 		return nil, nil, err
 	}
 
-	reply := &EventsPostReply{}
+	reply := &EventsReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err

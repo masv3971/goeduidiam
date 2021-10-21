@@ -16,25 +16,19 @@ type InvitesGetRequest struct {
 	ScimID string
 }
 
-// InvitesGetReply type
-type InvitesGetReply struct {
-	Ok  UsersReply
-	Err ErrorReply
-}
-
 // Get gets one invite
-func (s *InvitesService) Get(ctx context.Context, request InvitesGetRequest) (*InvitesGetReply, *http.Response, error) {
+func (s *InvitesService) Get(ctx context.Context, request InvitesGetRequest) (*UsersReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"GET",
-		fmt.Sprintf("/invite/%s", request.ScimID),
+		fmt.Sprintf("/invites/%s", request.ScimID),
 		nil,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	reply := &InvitesGetReply{}
+	reply := &UsersReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -48,24 +42,19 @@ type InvitesDeleteRequest struct {
 	ScimID string
 }
 
-// InvitesDeleteReply type
-type InvitesDeleteReply struct {
-	Ok struct{}
-}
-
 // Delete deletes one invite
-func (s *InvitesService) Delete(ctx context.Context, request InvitesDeleteRequest) (*InvitesDeleteReply, *http.Response, error) {
+func (s *InvitesService) Delete(ctx context.Context, request InvitesDeleteRequest) (*EmptyStruct, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
-		"GET",
-		fmt.Sprintf("/invite/%s", request.ScimID),
+		"DELETE",
+		fmt.Sprintf("/invites/%s", request.ScimID),
 		nil,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	reply := &InvitesDeleteReply{}
+	reply := &EmptyStruct{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -79,25 +68,19 @@ type InvitesPostRequest struct {
 	Data UsersRequest
 }
 
-// InvitesPostReply type
-type InvitesPostReply struct {
-	Ok  UsersReply
-	Err ErrorReply
-}
-
 // Post creates a new invite
-func (s *InvitesService) Post(ctx context.Context, request InvitesPostRequest) (*InvitesPostReply, *http.Response, error) {
+func (s *InvitesService) Post(ctx context.Context, request InvitesPostRequest) (*UsersReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
-		fmt.Sprintf("/invite/"),
+		fmt.Sprintf("/invites/"),
 		nil,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	reply := &InvitesPostReply{}
+	reply := &UsersReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err
@@ -111,25 +94,19 @@ type InvitesSearchRequest struct {
 	Data SearchRequest
 }
 
-// InvitesSearchReply type
-type InvitesSearchReply struct {
-	Ok  SearchReply
-	Err ErrorReply
-}
-
 // Search searches for an invite
-func (s *InvitesService) Search(ctx context.Context, request InvitesPostRequest) (*InvitesPostReply, *http.Response, error) {
+func (s *InvitesService) Search(ctx context.Context, request InvitesSearchRequest) (*SearchReply, *http.Response, error) {
 	req, err := s.client.newRequest(
 		ctx,
 		"POST",
-		fmt.Sprintf("/invite/"),
+		fmt.Sprintf("/invites/"),
 		nil,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	reply := &InvitesPostReply{}
+	reply := &SearchReply{}
 	resp, err := s.client.do(req, reply)
 	if err != nil {
 		return nil, resp, err

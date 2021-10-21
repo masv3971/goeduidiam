@@ -16,7 +16,12 @@ type Client struct {
 	httpClient *http.Client
 	URL        string
 
-	Users *UsersService
+	Events  *EventsService
+	Groups  *GroupsService
+	Invites *InvitesService
+	Login   *LoginService
+	Status  *StatusService
+	Users   *UsersService
 }
 
 // Config holds the configuration for New
@@ -25,7 +30,7 @@ type Config struct {
 }
 
 // New creates a new instance of goeduidiam
-func New(config Config) (*Client, error) {
+func New(config Config) *Client {
 	c := &Client{
 		URL: config.URL,
 		httpClient: &http.Client{
@@ -33,9 +38,14 @@ func New(config Config) (*Client, error) {
 		},
 	}
 
+	c.Events = &EventsService{client: c}
+	c.Groups = &GroupsService{client: c}
+	c.Invites = &InvitesService{client: c}
+	c.Login = &LoginService{client: c}
+	c.Status = &StatusService{client: c}
 	c.Users = &UsersService{client: c}
 
-	return c, nil
+	return c
 }
 
 func (c *Client) newRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
@@ -85,7 +95,15 @@ func (c *Client) do(req *http.Request, value interface{}) (*http.Response, error
 	defer resp.Body.Close()
 
 	if err := checkResponse(resp); err != nil {
-		return nil, err
+		errorReply := &Errors{}
+		buf := &bytes.Buffer{}
+		if _, err := buf.ReadFrom(resp.Body); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(buf.Bytes(), errorReply); err != nil {
+			return nil, err
+		}
+		return nil, errorReply
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(value); err != nil {
@@ -103,6 +121,7 @@ func checkResponse(r *http.Response) error {
 		return nil
 	case 500:
 		return fmt.Errorf("%s: not allowed", serviceName)
+	default:
+		return fmt.Errorf("%s: invalid request", serviceName)
 	}
-	return fmt.Errorf("%s: invalid request", serviceName)
 }
