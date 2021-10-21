@@ -23,14 +23,14 @@ func main() {
     })
 
     // resp is usual blank
-    user, resp, err := iam.Users.Get(ctx, &goeduidiam{
+    user, resp, err := iam.Users.Get(ctx, &goeduidiam.UsersGetRequest{
         ScimID: "testID",
     })
     if err != nil {
         // handle error
     }
 
-    searchGroup, _, err := iam.Groups.Search(ctx, &GroupsSearchRequest{
+    searchGroup, _, err := iam.Groups.Search(ctx, &goeduidiam.GroupsSearchRequest{
         Data SearchRequest{
 	        Schemas    []string 
 	        Filter     string   
@@ -44,3 +44,7 @@ func main() {
     }
 }  
 ```
+
+## Make release
+1. Update RELEASE file with new tag and commit comment. 
+2. ```$ make ```
