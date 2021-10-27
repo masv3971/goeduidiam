@@ -23,21 +23,20 @@ func main() {
     })
 
     // resp is usual blank
-    user, resp, err := iam.Users.Get(ctx, &goeduidiam.UsersGetRequest{
+    user, resp, err := iam.Users.Get(ctx, &goeduidiam.RequestCFG{
         ScimID: "testID",
     })
     if err != nil {
         // handle error
     }
 
-    searchGroup, _, err := iam.Groups.Search(ctx, &goeduidiam.GroupsSearchRequest{
-        Data SearchRequest{
-	        Schemas    []string 
-	        Filter     string   
-	        StartIndex int      
-	        Count      int      
-	        Attributes []string 
-        }
+    searchGroup, _, err := iam.Groups.Search(ctx, &goeduidiam.RequestCFG{
+        Search: goeduidiam.SearchRequest{
+            Schemas:    []string{},  
+	        Filter:     "",     
+	        StartIndex: 1, 
+	        Count       1,   
+	        Attributes  []string{},
     })
     if err != nil {
         // handle error
