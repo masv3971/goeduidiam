@@ -148,6 +148,9 @@ type UsersRequest struct {
 	HTTPSScimEduidSeSchemaNutidUserV1 HTTPSScimEduidSeSchemaNutidUserV1 `json:"https://scim.eduid.se/schema/nutid/user/v1"`
 }
 
+// InvitesRequest type
+type InvitesRequest struct{}
+
 // Name type
 type Name struct {
 	FamilyName      string `json:"familyName"`
@@ -199,4 +202,14 @@ type Error interface {
 
 func (e *Errors) Error() string {
 	return fmt.Sprintf("error: %v", e.Detail)
+}
+
+// RequestCFG general type for making requests
+type RequestCFG struct {
+	ScimID  string
+	Search  SearchRequest
+	Users   UsersRequest
+	Groups  GroupsRequest
+	Invites InvitesRequest
+	Events  EventsRequest
 }

@@ -10,10 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func mockServer(t *testing.T, mux *http.ServeMux) *httptest.Server {
+	return httptest.NewServer(mux)
+}
+
 func mockSetup(t *testing.T) (*http.ServeMux, *httptest.Server, *Client) {
 	mux := http.NewServeMux()
 
-	server := httptest.NewServer(mux)
+	//server := httptest.NewServer(mux)
+	server := mockServer(t, mux)
 
 	client := mockNew(t, server.URL)
 

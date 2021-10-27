@@ -38,12 +38,12 @@ func New(config Config) *Client {
 		},
 	}
 
-	c.Events = &EventsService{client: c}
-	c.Groups = &GroupsService{client: c}
-	c.Invites = &InvitesService{client: c}
+	c.Events = &EventsService{client: c, path: "events"}
+	c.Groups = &GroupsService{client: c, path: "groups"}
+	c.Invites = &InvitesService{client: c, path: "invites"}
 	c.Login = &LoginService{client: c}
-	c.Status = &StatusService{client: c}
-	c.Users = &UsersService{client: c}
+	c.Status = &StatusService{client: c, path: "status"}
+	c.Users = &UsersService{client: c, path: "users"}
 
 	return c
 }
@@ -124,4 +124,23 @@ func checkResponse(r *http.Response) error {
 	default:
 		return fmt.Errorf("%s: invalid request", serviceName)
 	}
+}
+
+func (c *Client) call(ctx context.Context, verb, path, param string, req, value interface{}) (*http.Response, error) {
+	request, err := c.newRequest(
+		ctx,
+		verb,
+		fmt.Sprintf("/%s/%s", path, param),
+		req,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.do(request, value)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }

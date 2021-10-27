@@ -18,7 +18,7 @@ import (
 func main() {
     ctx := context.TODO() // Make a useful context if you like
     
-    iam := goeduidiam.New(goeduidiam{
+    iam := goeduidiam.New(goeduidiam.Config{
         URL: "example-eduid.sunet.se",
     })
 
