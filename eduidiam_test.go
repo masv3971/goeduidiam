@@ -2,6 +2,7 @@ package goeduidiam
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +11,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func mockGenericEndpointServer(t *testing.T, mux *http.ServeMux, method, url string, payload []byte, statusCode int) {
+	mux.HandleFunc(fmt.Sprintf(url),
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(statusCode)
+			testMethod(t, r, method)
+			testURL(t, r, url)
+			w.Write(payload)
+		},
+	)
+}
+
 func mockServer(t *testing.T, mux *http.ServeMux) *httptest.Server {
 	return httptest.NewServer(mux)
 }
@@ -17,7 +29,6 @@ func mockServer(t *testing.T, mux *http.ServeMux) *httptest.Server {
 func mockSetup(t *testing.T) (*http.ServeMux, *httptest.Server, *Client) {
 	mux := http.NewServeMux()
 
-	//server := httptest.NewServer(mux)
 	server := mockServer(t, mux)
 
 	client := mockNew(t, server.URL)
@@ -28,6 +39,16 @@ func mockSetup(t *testing.T) (*http.ServeMux, *httptest.Server, *Client) {
 func mockNew(t *testing.T, url string) *Client {
 	cfg := Config{
 		URL: url,
+		Token: TokenConfig{
+			Certificate: []byte{},
+			PrivateKey:  []byte{},
+			Password:    "testPassword",
+			Scope:       "testScope",
+			Type:        "testType",
+			URL:         url,
+			Key:         "testKey",
+			Client:      "testClient",
+		},
 	}
 	client := New(cfg)
 	return client

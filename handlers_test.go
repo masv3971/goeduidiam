@@ -7,636 +7,659 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/google/uuid"
+	"github.com/masv3971/goeduidiam/eduidiammock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandlersDelete(t *testing.T) {
+func TestHandlers(t *testing.T) {
 	var (
 		client = mockNew(t, "")
 	)
 
 	tts := []struct {
-		name       string
-		path       string
-		reply      interface{}
-		statusCode int
-		fn         func(context.Context, RequestCFG) (*EmptyStruct, *http.Response, error)
-		payload    []byte
+		name             string
+		serverMethod     string
+		serverURL        string
+		serverPayload    []byte
+		serverStatusCode int
+		clientReply      interface{}
+		clientRequest    interface{}
+		clientFn         interface{}
 	}{
 		{
-			name:       "invites-200",
-			path:       "/invites",
-			reply:      &EmptyStruct{},
-			statusCode: 200,
-			fn:         client.Invites.Delete,
-			payload:    jsonEmpty,
+			name:             "GetHealthy",
+			serverMethod:     "GET",
+			serverURL:        "/status/healthy/",
+			serverPayload:    jsonHealthyReply,
+			serverStatusCode: 200,
+			clientReply:      &HealthyReply{},
+			clientFn:         client.Status.GetHealthy,
 		},
 		{
-			name:       "invites-500",
-			path:       "/invites",
-			reply:      &Errors{},
-			statusCode: 500,
-			fn:         client.Invites.Delete,
-			payload:    jsonErrorReply,
+			name:             "GetHealthy",
+			serverMethod:     "GET",
+			serverURL:        "/status/healthy/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientFn:         client.Status.GetHealthy,
 		},
 		{
-			name:       "groups-200",
-			path:       "/groups",
-			reply:      &EmptyStruct{},
-			statusCode: 200,
-			fn:         client.Groups.Delete,
-			payload:    jsonEmpty,
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/users/testuid",
+			serverPayload:    jsonUsersReply,
+			serverStatusCode: 200,
+			clientReply:      &UsersReply{},
+			clientRequest: &GetUsersRequest{
+				ScimID: "testuid",
+			},
+			clientFn: client.Users.Get,
 		},
 		{
-			name:       "groups-500",
-			path:       "/groups",
-			reply:      &Errors{},
-			statusCode: 500,
-			fn:         client.Groups.Delete,
-			payload:    jsonErrorReply,
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/users/testuid",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest: &GetUsersRequest{
+				ScimID: "testuid",
+			},
+			clientFn: client.Users.Get,
+		},
+		{
+			name:             "Put",
+			serverMethod:     "PUT",
+			serverURL:        "/users/testScim",
+			serverPayload:    jsonUsersReply,
+			serverStatusCode: 200,
+			clientReply:      &UsersReply{},
+			clientRequest:    &PutUsersRequest{ScimID: "testScim"},
+			clientFn:         client.Users.Put,
+		},
+		{
+			name:             "Put",
+			serverMethod:     "PUT",
+			serverURL:        "/users/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &PutUsersRequest{ScimID: "testScim"},
+			clientFn:         client.Users.Put,
+		},
+		{
+			name:             "search",
+			serverMethod:     "POST",
+			serverURL:        "/users/.search/",
+			serverPayload:    jsonSearchReply,
+			serverStatusCode: 200,
+			clientReply:      &SearchReply{},
+			clientRequest:    &SearchUsersRequest{},
+			clientFn:         client.Users.Search,
+		},
+		{
+			name:             "search",
+			serverMethod:     "POST",
+			serverURL:        "/users/.search/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &SearchUsersRequest{},
+			clientFn:         client.Users.Search,
+		},
+		{
+			name:             "post",
+			serverMethod:     "POST",
+			serverURL:        "/users/",
+			serverPayload:    jsonUsersReply,
+			serverStatusCode: 200,
+			clientReply:      &UsersReply{},
+			clientRequest:    &PostUsersRequest{},
+			clientFn:         client.Users.Post,
+		},
+		{
+			name:             "post",
+			serverMethod:     "POST",
+			serverURL:        "/users/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &PostUsersRequest{},
+			clientFn:         client.Users.Post,
+		},
+		{
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/invites/testScim",
+			serverPayload:    jsonUsersReply,
+			serverStatusCode: 200,
+			clientReply:      &UsersReply{},
+			clientRequest:    &GetInvitesRequest{ScimID: "testScim"},
+			clientFn:         client.Invites.Get,
+		},
+		{
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/invites/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &GetInvitesRequest{ScimID: "testScim"},
+			clientFn:         client.Invites.Get,
+		},
+		{
+			name:             "Post",
+			serverMethod:     "POST",
+			serverURL:        "/invites/",
+			serverPayload:    jsonUsersReply,
+			serverStatusCode: 200,
+			clientReply:      &UsersReply{},
+			clientRequest:    &PostInvitesRequest{},
+			clientFn:         client.Invites.Post,
+		},
+		{
+			name:             "Post",
+			serverMethod:     "POST",
+			serverURL:        "/invites/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &PostInvitesRequest{},
+			clientFn:         client.Invites.Post,
+		},
+		{
+			name:             "Search",
+			serverMethod:     "POST",
+			serverURL:        "/invites/.search/",
+			serverPayload:    jsonUsersReply,
+			serverStatusCode: 200,
+			clientReply:      &SearchReply{},
+			clientRequest:    &SearchInvitesRequest{},
+			clientFn:         client.Invites.Search,
+		},
+		{
+			name:             "Search",
+			serverMethod:     "POST",
+			serverURL:        "/invites/.search/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &SearchInvitesRequest{},
+			clientFn:         client.Invites.Search,
+		},
+		{
+			name:             "Delete",
+			serverMethod:     "DELETE",
+			serverURL:        "/invites/testScim",
+			serverPayload:    jsonEmpty,
+			serverStatusCode: 200,
+			clientReply:      &EmptyStruct{},
+			clientRequest:    &DeleteInvitesRequest{ScimID: "testScim"},
+			clientFn:         client.Invites.Delete,
+		},
+		{
+			name:             "Delete",
+			serverMethod:     "DELETE",
+			serverURL:        "/invites/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &DeleteInvitesRequest{ScimID: "testScim"},
+			clientFn:         client.Invites.Delete,
+		},
+		{
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/groups/testScim",
+			serverPayload:    jsonGroupsReply,
+			serverStatusCode: 200,
+			clientReply:      &GroupsReply{},
+			clientRequest:    &GetGroupsRequest{ScimID: "testScim"},
+			clientFn:         client.Groups.Get,
+		},
+		{
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/groups/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &GetGroupsRequest{ScimID: "testScim"},
+			clientFn:         client.Groups.Get,
+		},
+		{
+			name:             "GetAll",
+			serverMethod:     "GET",
+			serverURL:        "/groups/",
+			serverPayload:    jsonGroupsReplyAll,
+			serverStatusCode: 200,
+			clientReply:      &GroupsReply{},
+			clientFn:         client.Groups.GetAll,
+		},
+		{
+			name:             "GetAll",
+			serverMethod:     "GET",
+			serverURL:        "/groups/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientFn:         client.Groups.GetAll,
+		},
+		{
+			name:             "Post",
+			serverMethod:     "POST",
+			serverURL:        "/groups/",
+			serverPayload:    jsonGroupsReply,
+			serverStatusCode: 200,
+			clientReply:      &GroupsReply{},
+			clientRequest:    &PostGroupsRequest{},
+			clientFn:         client.Groups.Post,
+		},
+		{
+			name:             "Post",
+			serverMethod:     "POST",
+			serverURL:        "/groups/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &PostGroupsRequest{},
+			clientFn:         client.Groups.Post,
+		},
+		{
+			name:             "Put",
+			serverMethod:     "PUT",
+			serverURL:        "/groups/testScim",
+			serverPayload:    jsonGroupsReply,
+			serverStatusCode: 200,
+			clientReply:      &GroupsReply{},
+			clientRequest:    &PutGroupsRequest{ScimID: "testScim"},
+			clientFn:         client.Groups.Put,
+		},
+		{
+			name:             "Put",
+			serverMethod:     "PUT",
+			serverURL:        "/groups/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &PutGroupsRequest{ScimID: "testScim"},
+			clientFn:         client.Groups.Put,
+		},
+		{
+			name:             "Search",
+			serverMethod:     "POST",
+			serverURL:        "/groups/.search/",
+			serverPayload:    jsonSearchReply,
+			serverStatusCode: 200,
+			clientReply:      &SearchReply{},
+			clientRequest:    &SearchGroupsRequest{},
+			clientFn:         client.Groups.Search,
+		},
+		{
+			name:             "Search",
+			serverMethod:     "POST",
+			serverURL:        "/groups/.search/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &SearchGroupsRequest{},
+			clientFn:         client.Groups.Search,
+		},
+		{
+			name:             "Delete",
+			serverMethod:     "DELETE",
+			serverURL:        "/groups/testScim",
+			serverPayload:    jsonEmpty,
+			serverStatusCode: 200,
+			clientReply:      &EmptyStruct{},
+			clientRequest:    &DeleteGroupsRequest{ScimID: "testScim"},
+			clientFn:         client.Groups.Delete,
+		},
+		{
+			name:             "Delete",
+			serverMethod:     "DELETE",
+			serverURL:        "/groups/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &DeleteGroupsRequest{ScimID: "testScim"},
+			clientFn:         client.Groups.Delete,
+		},
+		{
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/events/testScim",
+			serverPayload:    jsonEventsReply,
+			serverStatusCode: 200,
+			clientReply:      &EventsReply{},
+			clientRequest:    &GetEventRequest{ScimID: "testScim"},
+			clientFn:         client.Events.Get,
+		},
+		{
+			name:             "Get",
+			serverMethod:     "GET",
+			serverURL:        "/events/testScim",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &GetEventRequest{ScimID: "testScim"},
+			clientFn:         client.Events.Get,
+		},
+		{
+			name:             "Post",
+			serverMethod:     "POST",
+			serverURL:        "/events/",
+			serverPayload:    jsonEventsReply,
+			serverStatusCode: 200,
+			clientReply:      &EventsReply{},
+			clientRequest:    &PostEventsRequest{},
+			clientFn:         client.Events.Post,
+		},
+		{
+			name:             "Post",
+			serverMethod:     "POST",
+			serverURL:        "/events/",
+			serverPayload:    jsonErrorReply,
+			serverStatusCode: 500,
+			clientReply:      &Errors{},
+			clientRequest:    &PostEventsRequest{},
+			clientFn:         client.Events.Post,
 		},
 	}
 
 	for _, tt := range tts {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s:%s %d -- %s", tt.serverMethod, tt.serverURL, tt.serverStatusCode, tt.name), func(t *testing.T) {
 			mux, server, _ := mockSetup(t)
-			client.URL = server.URL // add server url to client
+			client.url = server.URL          // add server url to client
+			client.SunetJWT.URL = server.URL // add server url to sunetJWT client
+			defer server.Close()
 
-			err := json.Unmarshal(tt.payload, tt.reply)
+			err := json.Unmarshal(tt.serverPayload, tt.clientReply)
 			if !assert.NoError(t, err) {
 				t.FailNow()
 			}
 
-			mockGenericEndpointServer(t, mux, "DELETE", tt.path, tt.payload, RequestCFG{}, tt.statusCode)
+			mockGenericEndpointServer(t, mux, "POST", "/transaction", eduidiammock.MockJWTJSON, 200)                // JWT Endpoint
+			mockGenericEndpointServer(t, mux, tt.serverMethod, tt.serverURL, tt.serverPayload, tt.serverStatusCode) // eduidiam Endpoint
 
-			switch tt.statusCode {
-			case 200:
-				reply, _, err := tt.fn(context.TODO(), RequestCFG{})
-				if !assert.NoError(t, err) {
-					t.Fatal(err)
+			switch tt.clientFn.(type) {
+			case func(context.Context) (*HealthyReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context) (*HealthyReply, *http.Response, error))
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO())
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO())
+					assert.Equal(t, err.Error(), r.Error())
 				}
-				assert.Equal(t, tt.reply, reply, "Should be equal")
-			case 500:
-				r := tt.reply.(*Errors)
+			case func(context.Context, *GetUsersRequest) (*UsersReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *GetUsersRequest) (*UsersReply, *http.Response, error))
+				req := tt.clientRequest.(*GetUsersRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
 
-				_, _, err = tt.fn(context.TODO(), RequestCFG{})
-				assert.Equal(t, err.Error(), r.Error())
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *PostUsersRequest) (*UsersReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *PostUsersRequest) (*UsersReply, *http.Response, error))
+				req := tt.clientRequest.(*PostUsersRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *SearchUsersRequest) (*SearchReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *SearchUsersRequest) (*SearchReply, *http.Response, error))
+				req := tt.clientRequest.(*SearchUsersRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *DeleteInvitesRequest) (*EmptyStruct, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *DeleteInvitesRequest) (*EmptyStruct, *http.Response, error))
+				req := tt.clientRequest.(*DeleteInvitesRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *DeleteGroupsRequest) (*EmptyStruct, *http.Response, error):
+				req := tt.clientRequest.(*DeleteGroupsRequest)
+				f := tt.clientFn.(func(context.Context, *DeleteGroupsRequest) (*EmptyStruct, *http.Response, error))
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(ctx context.Context, req *GetInvitesRequest) (*UsersReply, *http.Response, error):
+				f := tt.clientFn.(func(ctx context.Context, req *GetInvitesRequest) (*UsersReply, *http.Response, error))
+				req := tt.clientRequest.(*GetInvitesRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *PutUsersRequest) (*UsersReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *PutUsersRequest) (*UsersReply, *http.Response, error))
+				req := tt.clientRequest.(*PutUsersRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *PostInvitesRequest) (*UsersReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *PostInvitesRequest) (*UsersReply, *http.Response, error))
+				req := tt.clientRequest.(*PostInvitesRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *SearchInvitesRequest) (*SearchReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *SearchInvitesRequest) (*SearchReply, *http.Response, error))
+				req := tt.clientRequest.(*SearchInvitesRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *GetGroupsRequest) (*GroupsReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *GetGroupsRequest) (*GroupsReply, *http.Response, error))
+				req := tt.clientRequest.(*GetGroupsRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context) (*GroupsReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context) (*GroupsReply, *http.Response, error))
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO())
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO())
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *PostGroupsRequest) (*GroupsReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *PostGroupsRequest) (*GroupsReply, *http.Response, error))
+				req := tt.clientRequest.(*PostGroupsRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *PutGroupsRequest) (*GroupsReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *PutGroupsRequest) (*GroupsReply, *http.Response, error))
+				req := tt.clientRequest.(*PutGroupsRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *SearchGroupsRequest) (*SearchReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *SearchGroupsRequest) (*SearchReply, *http.Response, error))
+				req := tt.clientRequest.(*SearchGroupsRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *GetEventRequest) (*EventsReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *GetEventRequest) (*EventsReply, *http.Response, error))
+				req := tt.clientRequest.(*GetEventRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+			case func(context.Context, *PostEventsRequest) (*EventsReply, *http.Response, error):
+				f := tt.clientFn.(func(context.Context, *PostEventsRequest) (*EventsReply, *http.Response, error))
+				req := tt.clientRequest.(*PostEventsRequest)
+				switch tt.serverStatusCode {
+				case 200:
+					reply, _, err := f(context.TODO(), req)
+					if !assert.NoError(t, err) {
+						t.FailNow()
+					}
+					assert.Equal(t, tt.clientReply, reply, "Should be equal")
+				case 500:
+					r := tt.clientReply.(*Errors)
+
+					_, _, err = f(context.TODO(), req)
+					assert.Equal(t, err.Error(), r.Error())
+				}
+
+			default:
+				t.Errorf("Can't find any matching function signatures %T", tt.clientFn)
 			}
 
 			server.Close() // Kill http server after each run
-		})
-	}
-}
-func TestHandlersSearch(t *testing.T) {
-	var (
-		client = mockNew(t, "")
-	)
-
-	tts := []struct {
-		name       string
-		path       string
-		reply      interface{}
-		statusCode int
-		fn         func(context.Context, RequestCFG) (*SearchReply, *http.Response, error)
-		payload    []byte
-		req        RequestCFG
-	}{
-		{
-			name:       "users-200",
-			path:       "/users",
-			reply:      &SearchReply{},
-			statusCode: 200,
-			fn:         client.Users.Search,
-			payload:    jsonSearchReply,
-			req:        RequestCFG{},
-		},
-		{
-			name:       "users-500",
-			path:       "/users",
-			reply:      &Errors{},
-			statusCode: 500,
-			fn:         client.Users.Search,
-			payload:    jsonErrorReply,
-			req:        RequestCFG{},
-		},
-		{
-			name:       "groups-200",
-			path:       "/groups",
-			reply:      &SearchReply{},
-			statusCode: 200,
-			fn:         client.Groups.Search,
-			payload:    jsonSearchReply,
-			req:        RequestCFG{},
-		},
-		{
-			name:       "groups-500",
-			path:       "/groups",
-			reply:      &Errors{},
-			statusCode: 500,
-			fn:         client.Groups.Search,
-			payload:    jsonErrorReply,
-			req:        RequestCFG{},
-		},
-		{
-			name:       "invites-200",
-			path:       "/invites",
-			reply:      &SearchReply{},
-			statusCode: 200,
-			fn:         client.Invites.Search,
-			payload:    jsonSearchReply,
-			req:        RequestCFG{},
-		},
-		{
-			name:       "invites-500",
-			path:       "/invites",
-			reply:      &Errors{},
-			statusCode: 500,
-			fn:         client.Invites.Search,
-			payload:    jsonErrorReply,
-			req:        RequestCFG{},
-		},
-	}
-
-	for _, tt := range tts {
-		t.Run(tt.name, func(t *testing.T) {
-			mux, server, _ := mockSetup(t)
-			client.URL = server.URL // add server url to client
-
-			err := json.Unmarshal(tt.payload, tt.reply)
-			if !assert.NoError(t, err) {
-				t.FailNow()
-			}
-
-			mockGenericEndpointServer(t, mux, "POST", tt.path, tt.payload, tt.req, tt.statusCode)
-
-			switch tt.statusCode {
-			case 200:
-				reply, _, err := tt.fn(context.TODO(), tt.req)
-				if !assert.NoError(t, err) {
-					t.Fatal(err)
-				}
-				assert.Equal(t, tt.reply, reply, "Should be equal")
-			case 500:
-				r := tt.reply.(*Errors)
-
-				_, _, err = tt.fn(context.TODO(), tt.req)
-				assert.Equal(t, err.Error(), r.Error())
-			}
-
-			server.Close() // Kill http server after each run
-		})
-	}
-}
-
-func TestHandlersStatus(t *testing.T) {
-	var (
-		client = mockNew(t, "")
-	)
-
-	tts := []struct {
-		name       string
-		reply      interface{}
-		verb       string
-		path       string
-		payload    []byte
-		statusCode int
-		fn         func(context.Context) (*HealthyReply, *http.Response, error)
-	}{
-		{
-			name:       "GetHealthy 200",
-			reply:      &HealthyReply{},
-			verb:       http.MethodGet,
-			path:       "/status/healthy",
-			payload:    jsonHealthyReply,
-			statusCode: 200,
-			fn:         client.Status.GetHealthy,
-		},
-		{
-			name:       "GetHealthy 500",
-			reply:      &Errors{},
-			verb:       http.MethodGet,
-			path:       "/status/healthy",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Status.GetHealthy,
-		},
-	}
-
-	for _, tt := range tts {
-		t.Run(tt.name, func(t *testing.T) {
-			mux, server, _ := mockSetup(t)
-			client.URL = server.URL // Add server url to *Client
-
-			mockGenericEndpointServer(t, mux, tt.verb, tt.path, tt.payload, RequestCFG{}, tt.statusCode)
-
-			err := json.Unmarshal(tt.payload, tt.reply)
-			if !assert.NoError(t, err) {
-				t.FailNow()
-			}
-
-			switch tt.statusCode {
-			case 200:
-				reply, _, err := tt.fn(context.TODO())
-				if !assert.NoError(t, err) {
-					t.Fatal(err)
-				}
-
-				if !assert.Equal(t, tt.reply, reply, "Should be equal") {
-					t.FailNow()
-				}
-			case 500:
-				r := tt.reply.(*Errors)
-
-				_, _, err = tt.fn(context.TODO())
-				assert.Equal(t, err.Error(), r.Error())
-			}
-
-			server.Close() // Close server after each run
-		})
-	}
-}
-
-func TestHandlersGroup(t *testing.T) {
-	var (
-		client = mockNew(t, "")
-	)
-
-	tts := []struct {
-		name       string
-		reply      interface{}
-		req        RequestCFG
-		verb       string
-		path       string
-		payload    []byte
-		statusCode int
-		fn         func(context.Context, RequestCFG) (*GroupsReply, *http.Response, error)
-	}{
-		{
-			name:       "Get:/groups 200",
-			reply:      &GroupsReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodGet,
-			path:       "/groups",
-			payload:    jsonGroupsReply,
-			statusCode: 200,
-			fn:         client.Groups.Get,
-		},
-		{
-			name:       "Get:/groups 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodGet,
-			path:       "/groups",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Groups.Get,
-		},
-		{
-			name:       "GetAll:/groups 200",
-			reply:      &GroupsReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodGet,
-			path:       "/groups",
-			payload:    jsonGroupsReply,
-			statusCode: 200,
-			fn:         client.Groups.GetAll,
-		},
-		{
-			name:       "GetAll:/groups 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodGet,
-			path:       "/groups",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Groups.GetAll,
-		},
-		{
-			name:       "Post:/groups 200",
-			reply:      &GroupsReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/groups",
-			payload:    jsonGroupsReply,
-			statusCode: 200,
-			fn:         client.Groups.Post,
-		},
-		{
-			name:       "Post:/groups 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/groups",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Groups.Post,
-		},
-		{
-			name:       "Put:/groups 200",
-			reply:      &GroupsReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodPut,
-			path:       "/groups",
-			payload:    jsonGroupsReply,
-			statusCode: 200,
-			fn:         client.Groups.Put,
-		},
-		{
-			name:       "Put:/groups 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodPut,
-			path:       "/groups",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Groups.Put,
-		},
-	}
-
-	for _, tt := range tts {
-		t.Run(tt.name, func(t *testing.T) {
-			mux, server, _ := mockSetup(t)
-			client.URL = server.URL // Add server url to *Client
-
-			mockGenericEndpointServer(t, mux, tt.verb, tt.path, tt.payload, tt.req, tt.statusCode)
-
-			err := json.Unmarshal(tt.payload, tt.reply)
-			if !assert.NoError(t, err) {
-				t.FailNow()
-			}
-
-			switch tt.statusCode {
-			case 200:
-				reply, _, err := tt.fn(context.TODO(), tt.req)
-				if !assert.NoError(t, err) {
-					t.Fatal(err)
-				}
-
-				if !assert.Equal(t, tt.reply, reply, "Should be equal") {
-					t.FailNow()
-				}
-			case 500:
-				r := tt.reply.(*Errors)
-
-				_, _, err = tt.fn(context.TODO(), tt.req)
-				assert.Equal(t, err.Error(), r.Error())
-			}
-
-			server.Close() // Close server after each run
-		})
-	}
-}
-
-func TestHandlersUser(t *testing.T) {
-	var (
-		client = mockNew(t, "") // init *Client
-	)
-
-	tts := []struct {
-		name       string
-		reply      interface{}
-		req        RequestCFG
-		verb       string
-		path       string
-		payload    []byte
-		statusCode int
-		fn         func(context.Context, RequestCFG) (*UsersReply, *http.Response, error)
-	}{
-		{
-			name:       "Get:/users 200",
-			reply:      &UsersReply{},
-			req:        RequestCFG{ScimID: uuid.NewString()},
-			verb:       http.MethodGet,
-			path:       "/users",
-			fn:         client.Users.Get,
-			payload:    jsonUsersReply,
-			statusCode: 200,
-		},
-		{
-			name:       "Get:/users 500",
-			reply:      &Errors{},
-			req:        RequestCFG{ScimID: uuid.NewString()},
-			verb:       http.MethodGet,
-			path:       "/users",
-			fn:         client.Users.Get,
-			payload:    jsonErrorReply,
-			statusCode: 500,
-		},
-		{
-			name:       "Post:/users 200",
-			reply:      &UsersReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/users",
-			fn:         client.Users.Post,
-			payload:    jsonUsersReply,
-			statusCode: 200,
-		},
-		{
-			name:       "Post:/users 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/users",
-			fn:         client.Users.Post,
-			payload:    jsonErrorReply,
-			statusCode: 500,
-		},
-		{
-			name:       "Put:/users 200",
-			reply:      &UsersReply{},
-			req:        RequestCFG{ScimID: uuid.NewString()},
-			verb:       http.MethodPut,
-			path:       "/users",
-			fn:         client.Users.Put,
-			payload:    jsonUsersReply,
-			statusCode: 200,
-		},
-		{
-			name:       "Put:/users 500",
-			reply:      &Errors{},
-			req:        RequestCFG{ScimID: uuid.NewString()},
-			verb:       http.MethodPut,
-			path:       "/users",
-			fn:         client.Users.Put,
-			payload:    jsonErrorReply,
-			statusCode: 500,
-		},
-		{
-			name:       "Post:/invites 200",
-			reply:      &UsersReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/invites",
-			fn:         client.Invites.Post,
-			payload:    jsonUsersReply,
-			statusCode: 200,
-		},
-		{
-			name:       "Post:/invites 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/invites",
-			fn:         client.Invites.Post,
-			payload:    jsonErrorReply,
-			statusCode: 500,
-		},
-		{
-			name:       "Get:/invites 200",
-			reply:      &UsersReply{},
-			req:        RequestCFG{ScimID: uuid.NewString()},
-			verb:       http.MethodGet,
-			path:       "/invites",
-			fn:         client.Invites.Get,
-			payload:    jsonUsersReply,
-			statusCode: 200,
-		},
-		{
-			name:       "Get:/invites 500",
-			reply:      &Errors{},
-			req:        RequestCFG{ScimID: uuid.NewString()},
-			verb:       http.MethodGet,
-			path:       "/invites",
-			fn:         client.Invites.Get,
-			payload:    jsonErrorReply,
-			statusCode: 500,
-		},
-	}
-
-	for _, tt := range tts {
-		t.Run(tt.name, func(t *testing.T) {
-			mux, server, _ := mockSetup(t)
-			client.URL = server.URL // Add server url to *Client
-
-			mockGenericEndpointServer(t, mux, tt.verb, tt.path, tt.payload, tt.req, tt.statusCode)
-
-			err := json.Unmarshal(tt.payload, tt.reply)
-			if !assert.NoError(t, err) {
-				t.FailNow()
-			}
-
-			switch tt.statusCode {
-			case 200:
-				reply, _, err := tt.fn(context.TODO(), tt.req)
-				if !assert.NoError(t, err) {
-					t.Fatal(err)
-				}
-
-				if !assert.Equal(t, tt.reply, reply, "Should be equal") {
-					t.FailNow()
-				}
-			case 500:
-				r := tt.reply.(*Errors)
-
-				_, _, err = tt.fn(context.TODO(), tt.req)
-				assert.Equal(t, err.Error(), r.Error())
-			}
-
-			server.Close() // Close server after each run
-		})
-	}
-}
-
-func mockGenericEndpointServer(t *testing.T, mux *http.ServeMux, verb, path string, payload []byte, req RequestCFG, statusCode int) {
-	mux.HandleFunc(fmt.Sprintf("%s/%s", path, req.ScimID),
-		func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(statusCode)
-			testMethod(t, r, verb)
-			testURL(t, r, fmt.Sprintf("%s/%s", path, req.ScimID))
-			w.Write(payload)
-		},
-	)
-}
-
-func TestHandlersEvent(t *testing.T) {
-	var (
-		client = mockNew(t, "")
-	)
-
-	tts := []struct {
-		name       string
-		reply      interface{}
-		req        RequestCFG
-		verb       string
-		path       string
-		payload    []byte
-		statusCode int
-		fn         func(context.Context, RequestCFG) (*EventsReply, *http.Response, error)
-	}{
-		{
-			name:       "Get:/events 200",
-			reply:      &EventsReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodGet,
-			path:       "/events",
-			payload:    jsonEventsReply,
-			statusCode: 200,
-			fn:         client.Events.Get,
-		},
-		{
-			name:       "Get:/events 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodGet,
-			path:       "/events",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Events.Get,
-		},
-		{
-			name:       "Post:/events 200",
-			reply:      &EventsReply{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/events",
-			payload:    jsonEventsReply,
-			statusCode: 200,
-			fn:         client.Events.Post,
-		},
-		{
-			name:       "Post:/events 500",
-			reply:      &Errors{},
-			req:        RequestCFG{},
-			verb:       http.MethodPost,
-			path:       "/events",
-			payload:    jsonErrorReply,
-			statusCode: 500,
-			fn:         client.Events.Post,
-		},
-	}
-
-	for _, tt := range tts {
-		t.Run(tt.name, func(t *testing.T) {
-			mux, server, _ := mockSetup(t)
-			client.URL = server.URL // Add server url to *Client
-
-			mockGenericEndpointServer(t, mux, tt.verb, tt.path, tt.payload, tt.req, tt.statusCode)
-
-			err := json.Unmarshal(tt.payload, tt.reply)
-			if !assert.NoError(t, err) {
-				t.FailNow()
-			}
-
-			switch tt.statusCode {
-			case 200:
-				reply, _, err := tt.fn(context.TODO(), tt.req)
-				if !assert.NoError(t, err) {
-					t.Fatal(err)
-				}
-
-				if !assert.Equal(t, tt.reply, reply, "Should be equal") {
-					t.FailNow()
-				}
-			case 500:
-				r := tt.reply.(*Errors)
-
-				_, _, err = tt.fn(context.TODO(), tt.req)
-				assert.Equal(t, err.Error(), r.Error())
-			}
-
-			server.Close() // Close server after each run
 		})
 	}
 }

@@ -9,39 +9,65 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/masv3971/goeduidiam/internal/sunetjwt"
 )
 
 // Client holds the object
 type Client struct {
 	httpClient *http.Client
-	URL        string
+	url        string
+	//jwtLock    *sync.RWMutex
+	//jwtObject  *sunetjwt.JWT
 
-	Events  *EventsService
-	Groups  *GroupsService
-	Invites *InvitesService
-	Login   *LoginService
-	Status  *StatusService
-	Users   *UsersService
+	SunetJWT *sunetjwt.Client
+	Events   *EventsService
+	Groups   *GroupsService
+	Invites  *InvitesService
+	Status   *StatusService
+	Users    *UsersService
 }
 
 // Config holds the configuration for New
 type Config struct {
-	URL string
+	URL   string
+	Token TokenConfig
+}
+
+// TokenConfig configs token renew
+type TokenConfig struct {
+	Certificate []byte
+	PrivateKey  []byte
+	Password    string
+	Scope       string
+	Type        string
+	URL         string
+	Key         string
+	Client      string
 }
 
 // New creates a new instance of goeduidiam
 func New(config Config) *Client {
 	c := &Client{
-		URL: config.URL,
+		url: config.URL,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
 	}
 
+	c.SunetJWT = sunetjwt.New(sunetjwt.Config{
+		Certificate: config.Token.Certificate,
+		PrivateKey:  config.Token.PrivateKey,
+		Password:    config.Token.Password,
+		Scope:       config.Token.Scope,
+		Type:        config.Token.Type,
+		URL:         config.Token.URL,
+		Key:         config.Token.Key,
+		Client:      config.Token.Client,
+	})
 	c.Events = &EventsService{client: c, path: "events"}
 	c.Groups = &GroupsService{client: c, path: "groups"}
 	c.Invites = &InvitesService{client: c, path: "invites"}
-	c.Login = &LoginService{client: c}
 	c.Status = &StatusService{client: c, path: "status"}
 	c.Users = &UsersService{client: c, path: "users"}
 
@@ -54,7 +80,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 		return nil, err
 	}
 
-	u, err := url.Parse(c.URL)
+	u, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +100,13 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 		}
 	}
 
+	if err := c.SunetJWT.EnsureJWT(ctx); err != nil {
+		return nil, err
+	}
+	// Obtain lock for jwt token
+	c.SunetJWT.JWT.RLock()
+	defer c.SunetJWT.JWT.RUnlock()
+
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), buf)
 	if err != nil {
 		return nil, err
@@ -82,8 +115,8 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 		req.Header.Set("Content-Type", "application/json")
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "goeduidiam/0.0.1")
-
+	req.Header.Set("User-Agent", "goeduidiam") // TODO(masv): add version
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", c.SunetJWT.JWT.RAW))
 	return req, nil
 }
 

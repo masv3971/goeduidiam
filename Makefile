@@ -70,7 +70,3 @@ check-readme-file:
 ifeq (,$(wildcard ./README.md))
 	$(error README file does not exists, make it!)
 endif
-
-v:
-		$(info $(VERSION)  $(COMMIT_MSG))
-		@echo ${VERSION}

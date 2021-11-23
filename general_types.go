@@ -86,11 +86,11 @@ type SearchReply struct {
 
 // GroupsRequest type
 type GroupsRequest struct {
-	Schemas                            []string                           `json:"schemas"`
-	ExternalID                         string                             `json:"externalId"`
-	DisplayName                        string                             `json:"displayName"`
-	Members                            []Member                           `json:"members"`
-	HTTPSScimEduidSeSchemaNutidGroupV1 HTTPSScimEduidSeSchemaNutidGroupV1 `json:"https://scim.eduid.se/schema/nutid/group/v1"`
+	Schemas                            []string                           `validate:"required" json:"schemas"`
+	ExternalID                         string                             `validate:"required" json:"externalId"`
+	DisplayName                        string                             `validate:"required" json:"displayName"`
+	Members                            []Member                           `validate:"required" json:"members"`
+	HTTPSScimEduidSeSchemaNutidGroupV1 HTTPSScimEduidSeSchemaNutidGroupV1 `validate:"required" json:"https://scim.eduid.se/schema/nutid/group/v1"`
 }
 
 // GroupsReply type
@@ -205,11 +205,11 @@ func (e *Errors) Error() string {
 }
 
 // RequestCFG general type for making requests
-type RequestCFG struct {
-	ScimID  string
-	Search  SearchRequest
-	Users   UsersRequest
-	Groups  GroupsRequest
-	Invites InvitesRequest
-	Events  EventsRequest
-}
+//type RequestCFG struct {
+//	ScimID  string
+//	Search  SearchRequest
+//	Users   UsersRequest
+//	Groups  GroupsRequest
+//	Invites InvitesRequest
+//	Events  EventsRequest
+//}

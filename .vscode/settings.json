@@ -1,14 +1,19 @@
 {
     "cSpell.words": [
+        "dgrijalva",
         "Eduid",
+        "eduidiam",
+        "eduidiammock",
         "eudid",
         "goeduidiam",
+        "JWTJSON",
         "Magnus",
         "masv",
         "mura",
         "Nutid",
         "Scim",
         "stretchr",
-        "sunet"
+        "sunet",
+        "sunetjwt"
     ]
 }
